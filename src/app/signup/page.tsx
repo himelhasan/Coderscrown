@@ -1,29 +1,56 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { IUser } from "@/models/userSignUp/userSignUp.interface";
+import { toast } from "react-hot-toast";
 
-const SignUp = () => {
+export default function Signup() {
+  const router = useRouter();
+
   const [user, setUser] = useState({
     email: "",
     password: "",
     username: "",
   });
 
-  const handleSignUp = async (data: any) => {
-    console.log("form submitted");
-    console.log(data);
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = async () => {
+    // e.preventDefault();
+    // console.log("form submitted");
+    // console.log(user);
+
+    try {
+      const res = await axios.post(`/api/users/signup`, user);
+      console.log("user created", res.data);
+      router.push("/login");
+    } catch (error: any) {
+      console.log("sign-up error" + error);
+      toast.error(error.message);
+    }
   };
+
+  const [btnDisabled, setBtnDisabled] = useState(true);
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length > 0 && user.username.length > 0) {
+      setBtnDisabled(false);
+    } else {
+      setBtnDisabled(true);
+    }
+  }, [user]);
 
   return (
     <>
       {" "}
       <section className="px-4 py-24 mx-auto max-w-7xl">
         <div className="w-full mx-auto space-y-5 sm:w-8/12 md:w-6/12 lg:w-4/12 xl:w-3/12">
-          <h1 className="text-4xl font-semibold text-center text-gray-900">Sign up</h1>
+          <h1 className="text-4xl font-semibold text-center text-gray-900">
+            {loading ? "Processing" : "Sign up"}
+          </h1>
 
-          <form className="space-y-4" onSubmit={() => handleSignUp(user)}>
+          <form className="space-y-4" onSubmit={handleSignUp}>
             <div className="form-field">
               <label className="block mb-1 text-xs font-medium text-gray-700">
                 Username
@@ -69,6 +96,7 @@ const SignUp = () => {
 
             <input
               type="submit"
+              disabled={btnDisabled}
               className="w-full btn btn-primary btn-lg"
               value="Sign Up"
             />
@@ -119,6 +147,4 @@ const SignUp = () => {
       </section>
     </>
   );
-};
-
-export default SignUp;
+}
